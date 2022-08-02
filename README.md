@@ -1,1 +1,1 @@
-# aks-gpu
+# Driver container image for AKS VHD

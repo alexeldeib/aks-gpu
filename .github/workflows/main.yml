@@ -1,0 +1,45 @@
+name: aks-gpu
+on:
+  push:
+    branches:
+    - main
+    - dev
+  workflow_dispatch: {}
+
+env:
+  DOCKER_USER: ${{ secrets.DOCKER_USER }}
+  DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
+  REPO: docker.io/alexeldeib
+  IMG_PREFIX: aks-gpu
+
+jobs:
+  build: 
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+    - name: Cache Docker layers
+      uses: actions/cache@v2
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-buildx-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-
+    - name: apt install moreutils
+      run: sudo apt install -y moreutils
+    - name: build image
+      run: |
+        set -euo pipefail
+        docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
+        TAG=$(date -Ihours | tr :+ -)
+        echo "TAG: ${TAG}"
+        echo "${TAG}" > tag
+        docker buildx build --cache-from=type=local,src=/tmp/.buildx-cache --cache-to=type=local,dest=/tmp/.buildx-cache-new -t ${REPO}/${IMG_PREFIX}:${TAG} --output=type=docker .
+        docker tag ${REPO}/${IMG_PREFIX}:${TAG} ${REPO}/${IMG_PREFIX}:latest
+        docker push ${REPO}/${IMG_PREFIX}:latest
+        ${REPO}/${IMG_PREFIX}:${TAG}
+    - name: Move cache
+      run: |
+        rm -rf /tmp/.buildx-cache
+        mv /tmp/.buildx-cache-new /tmp/.buildx-cache
