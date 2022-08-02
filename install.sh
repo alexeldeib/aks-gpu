@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-apt update && apt install -y kmod gcc make ca-certificates initramfs-tools --no-install-recommends
+apt update && apt install -y kmod gcc make dkms initramfs-tools linux-headers-$(uname -r) ca-certificates --no-install-recommends
 
 DRIVER_VERSION="510.47.03"
 GPU_DEST="/usr/local/nvidia"
@@ -12,20 +12,20 @@ cp /opt/gpu/blacklist-nouveau.conf /etc/modprobe.d/blacklist-nouveau.conf
 update-initramfs -u
 
 # override default nvidia lib location which is not changeable via runfile options
-mkdir -p ${GPU_DEST}/lib64 ${GPU_DEST}/overlay-workdir
-mount -t overlay -o lowerdir=/usr/lib/x86_64-linux-gnu,upperdir=${GPU_DEST}/lib64,workdir=${GPU_DEST}/overlay-workdir none /usr/lib/x86_64-linux-gnu
+mkdir /tmp/overlay
+mount -t tmpfs tmpfs /tmp/overlay
+mkdir /tmp/overlay/{workdir,lib64}
+mkdir -p ${GPU_DEST}/lib64
+mount -t overlay overlay -o lowerdir=/usr/lib/x86_64-linux-gnu,upperdir=/tmp/overlay/lib64,workdir=/tmp/overlay/workdir /usr/lib/x86_64-linux-gnu
 
-sh /opt/gpu/NVIDIA-Linux-x86_64-${DRIVER_VERSION}.run \
-    -s \
-    -k=$KERNEL_NAME \
-    --log-file-name=${LOG_FILE_NAME} \
-    -a \
-    --no-drm \
-    --dkms \
-    --utility-prefix="${GPU_DEST}" \
-    --opengl-prefix="${GPU_DEST}"
+pushd /opt/gpu
+sh /opt/gpu/NVIDIA-Linux-x86_64-${DRIVER_VERSION}.run -x
+popd
+/opt/gpu/NVIDIA-Linux-x86_64-${DRIVER_VERSION}/nvidia-installer -s -k=$KERNEL_NAME --log-file-name=${LOG_FILE_NAME} -a --no-drm --dkms --utility-prefix="${GPU_DEST}" --opengl-prefix="${GPU_DEST}"
 
-mv ${GPU_DEST}/bin/* /usr/bin
+cp -a /tmp/overlay/lib64 ${GPU_DEST}/lib64
+
+cp -rvT ${GPU_DEST}/bin /usr/bin
 echo "${GPU_DEST}/lib64" > /etc/ld.so.conf.d/nvidia.conf
 ldconfig 
 umount -l /usr/lib/x86_64-linux-gnu
