@@ -4,7 +4,7 @@ set -euxo pipefail
 NVIDIA_CONTAINER_RUNTIME_VERSION="3.6.0"
 NVIDIA_CONTAINER_TOOLKIT_VER="1.6.0"
 NVIDIA_PACKAGES="libnvidia-container1 libnvidia-container-tools nvidia-container-toolkit"
-DRIVER_VERSION="510.47.03"
+DRIVER_VERSION="470.57.02"
 GPU_DEST="/usr/local/nvidia"
 KERNEL_NAME=$(uname -r)
 LOG_FILE_NAME="/var/log/nvidia-installer-$(date +%s).log"
@@ -66,5 +66,6 @@ rm -r /tmp/overlay
 set -e
 
 # validate that nvidia driver is working
+dkms status
 nvidia-modprobe -u -c0
 nvidia-smi
