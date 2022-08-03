@@ -37,7 +37,7 @@ jobs:
         echo "${TAG}" > tag
         docker buildx build --cache-from=type=local,src=/tmp/.buildx-cache --cache-to=type=local,dest=/tmp/.buildx-cache-new -t ${REPO}/${IMG_PREFIX}:${TAG} --output=type=docker .
         docker tag ${REPO}/${IMG_PREFIX}:${TAG} ${REPO}/${IMG_PREFIX}:latest
-        # docker push ${REPO}/${IMG_PREFIX}:latest
+        docker push ${REPO}/${IMG_PREFIX}:latest
         docker push ${REPO}/${IMG_PREFIX}:${TAG}
     - name: Move cache
       run: |

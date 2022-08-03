@@ -10,6 +10,13 @@ if [[ -z "${1}" ]]; then
     exit 1
 fi
 
+if [[ "${1}" == "copy" ]]; then
+    echo "copying gpu cache files and exiting"
+    cp -a /opt/gpu/. /mnt/gpu/
+    echo "Completed successfully!"
+    exit 0
+fi
+
 ACTION_FILE="/opt/actions/${1}"
 
 if [[ ! -f "$ACTION_FILE" ]]; then
@@ -35,7 +42,6 @@ if [ $RESULT -eq 0 ]; then
     # Success.
     rm -rf /mnt/actions/*
     echo "Completed successfully!"
-    sleep infinity
 else
     echo "Failed during nsenter command execution"
     exit 1
