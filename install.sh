@@ -12,12 +12,16 @@ cp /opt/gpu/blacklist-nouveau.conf /etc/modprobe.d/blacklist-nouveau.conf
 update-initramfs -u
 
 # override default nvidia lib location which is not changeable via runfile options
+umount -l /usr/lib/x86_64-linux-gnu || true
+umount -l /tmp/overlay || true
+rm -r /tmp/overlay
 mkdir /tmp/overlay
 mount -t tmpfs tmpfs /tmp/overlay
 mkdir /tmp/overlay/{workdir,lib64}
 mkdir -p ${GPU_DEST}/lib64
 mount -t overlay overlay -o lowerdir=/usr/lib/x86_64-linux-gnu,upperdir=/tmp/overlay/lib64,workdir=/tmp/overlay/workdir /usr/lib/x86_64-linux-gnu
 
+rm -r /opt/gpu/NVIDIA-Linux-x86_64-${DRIVER_VERSION}
 pushd /opt/gpu
 sh /opt/gpu/NVIDIA-Linux-x86_64-${DRIVER_VERSION}.run -x
 popd
@@ -29,6 +33,7 @@ cp -rvT ${GPU_DEST}/bin /usr/bin
 echo "${GPU_DEST}/lib64" > /etc/ld.so.conf.d/nvidia.conf
 ldconfig 
 umount -l /usr/lib/x86_64-linux-gnu
+umount /tmp/overlay
 
 nvidia-modprobe -u -c0
 nvidia-smi
