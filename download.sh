@@ -2,11 +2,11 @@
 set -euo pipefail
 
 source /etc/os-release
+source /opt/gpu/config.sh
 
 NVIDIA_CONTAINER_RUNTIME_VERSION="3.6.0"
 NVIDIA_CONTAINER_TOOLKIT_VER="1.6.0"
 NVIDIA_PACKAGES="libnvidia-container1 libnvidia-container-tools nvidia-container-toolkit"
-DRIVER_VERSION="510.47.03"
 GPU_DEST="/usr/local/nvidia"
 
 workdir="$(mktemp -d)"
