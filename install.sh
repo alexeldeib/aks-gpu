@@ -27,6 +27,7 @@ set +e
 umount -l /usr/lib/x86_64-linux-gnu || true
 umount -l /tmp/overlay || true
 rm -r /tmp/overlay
+rm -r /opt/gpu/NVIDIA-Linux-x86_64-${DRIVER_VERSION}
 set -e
 
 # set up overlayfs to change install location of nvidia libs from /usr/lib/x86_64-linux-gnu to /usr/local/nvidia
@@ -39,7 +40,6 @@ mount -t overlay overlay -o lowerdir=/usr/lib/x86_64-linux-gnu,upperdir=/tmp/ove
 
 # clean up previously uncompressed driver, if it exists
 # causes driver installer to fail if it exists
-rm -r /opt/gpu/NVIDIA-Linux-x86_64-${DRIVER_VERSION}
 pushd /opt/gpu
 # extract runfile, takes some time, so do ahead of time
 sh /opt/gpu/NVIDIA-Linux-x86_64-${DRIVER_VERSION}.run -x
