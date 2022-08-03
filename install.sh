@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -euxo pipefail
 
 NVIDIA_CONTAINER_RUNTIME_VERSION="3.6.0"
 NVIDIA_CONTAINER_TOOLKIT_VER="1.6.0"
@@ -23,9 +23,11 @@ cp /opt/gpu/blacklist-nouveau.conf /etc/modprobe.d/blacklist-nouveau.conf
 update-initramfs -u
 
 # clean up lingering files from previous install
+set +e
 umount -l /usr/lib/x86_64-linux-gnu || true
 umount -l /tmp/overlay || true
 rm -r /tmp/overlay
+set -e
 
 # set up overlayfs to change install location of nvidia libs from /usr/lib/x86_64-linux-gnu to /usr/local/nvidia
 # add an extra layer of indirection via tmpfs because it's not possible to have an overlayfs on an overlayfs (i.e., inside a container)
@@ -57,9 +59,11 @@ echo "${GPU_DEST}/lib64" > /etc/ld.so.conf.d/nvidia.conf
 ldconfig 
 
 # unmount, cleanup
+set +e
 umount -l /usr/lib/x86_64-linux-gnu
 umount /tmp/overlay
 rm -r /tmp/overlay
+set -e
 
 # validate that nvidia driver is working
 nvidia-modprobe -u -c0
